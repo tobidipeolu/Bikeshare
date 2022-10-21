@@ -1,0 +1,141 @@
+## Finding unique Ids
+SELECT Distinct ID
+FROM sleeplog
+
+SELECT Distinct ID
+FROM dailyactivity
+
+SELECT Distinct ID
+FROM weightlog
+
+## Cleaning the Data (IDs are 10 characters)
+SELECT 
+LENGTH(Id)
+FROM dailyactivity
+WHERE LENGTH(Id) <> 10;
+
+SELECT 
+LENGTH(Id)
+FROM sleepday
+WHERE LENGTH(Id) <> 10;
+
+SELECT 
+LENGTH(Id)
+FROM weightlog
+WHERE LENGTH(Id) <> 10;
+
+## Finding duplicates and removing them
+SELECT Id, SleepDay, COUNT(*)
+FROM sleeplog
+GROUP BY Id, sleepday
+HAVING COUNT(*) > 1
+
+SELECT Id, ActivityDate, COUNT(*)
+FROM dailyactivity
+GROUP BY Id, ActivityDate
+HAVING COUNT(*) > 1
+
+SELECT Id, date, COUNT(*)
+FROM weightlog
+GROUP BY Id, date
+HAVING COUNT(*) > 1
+
+## average time user spend active 
+SELECT
+    AVG(VeryActiveMinutes),
+    AVG(LightlyActiveMinutes),
+    AVG(FairlyActiveMinutes),
+    ROUND((AVG(VeryActiveMinutes) + AVG(FairlyActiveMinutes) + AVG(LightlyActiveMinutes))/60,2) AS AVG_TIME
+FROM
+	dailyactivity
+    
+## the recommended daily steps are 10,000
+SELECT
+    COUNT(DISTINCT TOTALSTEPS)
+FROM
+	dailyactivity 
+#Results = 842 rows
+
+## LOOKING FOR HOW MANY DISTINCT ROWS THAT ARE LESS THAN OR EQUAL TO 2,500 steps.
+
+SELECT
+    COUNT(DISTINCT TOTALSTEPS)
+FROM
+    dailyactivity
+WHERE
+    TOTALSTEPS <=2500;
+    
+## CHECKING FOR HOW MANY DISTINCT ROWS THAT ARE BETWEEN 2,500 and 5,000 steps
+
+SELECT
+    COUNT(DISTINCT TOTALSTEPS)
+FROM
+    dailyactivity
+WHERE
+    TOTALSTEPS BETWEEN 2500 AND 5000;
+
+## CHECKING FOR HOW MANY DISTINCT ROWS THAT ARE BETWEEN 5,000 and 7,500 steps.
+
+SELECT
+    COUNT(DISTINCT TOTALSTEPS)
+FROM
+    dailyactivity
+WHERE
+    TOTALSTEPS BETWEEN 5000 AND 7500;    
+
+## CHECKING FOR HOW MANY DISTINCT ROWS THAT ARE BETWEEN 7,500 and 10,000 steps.
+
+SELECT
+COUNT(DISTINCT TOTALSTEPS)
+FROM
+dailyactivity
+WHERE
+    TOTALSTEPS BETWEEN 7500 AND 10000;
+    
+## CHECKING FOR HOW MANY DISTINCT ROWS THAT ARE GREATER OR EQUAL TO 10,0000 STEPS
+
+SELECT
+ COUNT(DISTINCT TOTALSTEPS)
+FROM
+dailyactivity
+WHERE
+    TOTALSTEPS >=10000
+
+### Selecting users that have more than 20,000 and viewing the amount of time they sleep 
+
+SELECT dailyactivity.Id AS Id, dailyactivity.TotalSteps, sleepday.TotalMinutesAsleep, ROUND((sleepday.TotalMinutesAsleep)/60,2) AS TotalHOURSAsleep
+FROM dailyactivity 
+	INNER JOIN sleepday
+    ON dailyactivity.Id = sleepday.Id
+WHERE 
+dailyactivity.TotalSteps >=20000
+
+
+## Finding the average hours of sleep for those who reach their reccommended level of steps (7.19h)
+WITH recsteps AS (SELECT dailyactivity.Id AS Id, dailyactivity.TotalSteps, sleepday.TotalMinutesAsleep, ROUND((sleepday.TotalMinutesAsleep)/60,2) AS TotalHOURSAsleep
+FROM dailyactivity 
+	INNER JOIN sleepday
+    ON dailyactivity.Id = sleepday.Id
+WHERE 
+dailyactivity.TotalSteps >=20000)
+SELECT ROUND(AVG(TotalHOURSAsleep),2)
+FROM recsteps
+WHERE TotalHOURSAsleep BETWEEN 2 and 9
+
+### FINDING THE AVERAGE BMI and AVERAGE WEIGHT ( 25.18 (healthy), 158.7)
+### Comparing it those that achieve their reccommended steps BMI and weight (25.33, 180.50) 
+
+SELECT 
+ROUND(AVG(WeightPounds),2), ROUND(AVG(BMI),2)
+FROM weightlog;
+
+WITH recsteps2 AS 
+(SELECT dailyactivity.Id AS Id, dailyactivity.TotalSteps, BMI, WeightPounds
+FROM dailyactivity 
+	INNER JOIN weightlog
+    ON dailyactivity.Id = weightlog.Id
+WHERE 
+dailyactivity.TotalSteps >=20000)
+SELECT ROUND(AVG(BMI),2), ROUND(AVG(WeightPounds),2)
+FROM recsteps2
+
