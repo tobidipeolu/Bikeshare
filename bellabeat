@@ -68,6 +68,29 @@ SELECT Id, date, Time, WeightKg, WeightPounds, Fat, BMI, IsManualReport, LogId
 FROM weightlog
 WHERE COALESCE (Id, date, Time, WeightKg, WeightPounds, Fat, BMI, IsManualReport, LogId) IS NULL
 
+## Finding Outliers 
+SELECT TotalSteps,
+(TotalSteps - AVG(TotalSteps) over())/ STDDEV(TotalSteps) over() as Zscore
+FROM dailyactivity 
+
+SELECT * 
+FROM
+(SELECT TotalSteps,
+(TotalSteps - AVG(TotalSteps) over())/ STDDEV(TotalSteps) over() as Zscore
+FROM dailyactivity) AS score_table
+WHERE zscore > 2.576 or zscore <-2.576
+
+SELECT TotalMinutesAsleep,
+(TotalMinutesAsleep - AVG(TotalMinutesAsleep) over())/ STDDEV(TotalMinutesAsleep) over() as Zscore
+FROM sleeplog 
+
+SELECT * 
+FROM
+(SELECT TotalMinutesAsleep,
+(TotalMinutesAsleep - AVG(TotalMinutesAsleep) over())/ STDDEV(TotalMinutesAsleep) over() as Zscore
+FROM sleeplog) AS score_table
+WHERE zscore > 2.576 or zscore <-2.576
+
 
 ## Average time user spends active 
 SELECT
